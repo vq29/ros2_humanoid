@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<!-- 
+  RGB-D Camera Sensor for Gazebo Harmonic
+  Provides color image + depth image for object detection
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="humanoid_camera" params="prefix parent_link *origin">
+
+    <!-- ==================== PROPERTIES ==================== -->
+    <xacro:property name="camera_width" value="0.04"/>
+    <xacro:property name="camera_height" value="0.03"/>
+    <xacro:property name="camera_depth" value="0.03"/>
+
+    <!-- ==================== MATERIALS ==================== -->
+    <material name="${prefix}camera_body">
+      <color rgba="0.1 0.1 0.1 1.0"/>
+    </material>
+    <material name="${prefix}camera_lens">
+      <color rgba="0.0 0.0 0.3 1.0"/>
+    </material>
+
+    <!-- ==================== CAMERA LINK ==================== -->
+    <joint name="${prefix}camera_joint" type="fixed">
+      <xacro:insert_block name="origin"/>
+      <parent link="${parent_link}"/>
+      <child link="${prefix}camera_link"/>
+    </joint>
+
+    <link name="${prefix}camera_link">
+      <visual>
+        <geometry>
+          <box size="${camera_depth} ${camera_width} ${camera_height}"/>
+        </geometry>
+        <material name="${prefix}camera_body"/>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="${camera_depth} ${camera_width} ${camera_height}"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="0.05"/>
+        <inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.00001"/>
+      </inertial>
+    </link>
+
+    <!-- Camera lens (cosmetic) -->
+    <joint name="${prefix}camera_lens_joint" type="fixed">
+      <origin xyz="${camera_depth/2 + 0.002} 0 0" rpy="0 ${pi/2} 0"/>
+      <parent link="${prefix}camera_link"/>
+      <child link="${prefix}camera_lens_link"/>
+    </joint>
+
+    <link name="${prefix}camera_lens_link">
+      <visual>
+        <geometry>
+          <cylinder radius="0.008" length="0.005"/>
+        </geometry>
+        <material name="${prefix}camera_lens"/>
+      </visual>
+      <inertial>
+        <mass value="0.001"/>
+        <inertia ixx="0.000001" ixy="0" ixz="0" iyy="0.000001" iyz="0" izz="0.000001"/>
+      </inertial>
+    </link>
+
+    <!-- Optical frame (Z forward, X right, Y down — OpenCV convention) -->
+    <joint name="${prefix}camera_optical_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
+      <parent link="${prefix}camera_link"/>
+      <child link="${prefix}camera_optical_frame"/>
+    </joint>
+    <link name="${prefix}camera_optical_frame"/>
+
+    <!-- ==================== GAZEBO HARMONIC SENSOR ==================== -->
+    <gazebo reference="${prefix}camera_link">
+      <sensor name="${prefix}rgbd_camera" type="rgbd_camera">
+        <always_on>true</always_on>
+        <update_rate>30</update_rate>
+        <camera>
+          <horizontal_fov>1.047</horizontal_fov>
+          <image>
+            <width>640</width>
+            <height>480</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.1</near>
+            <far>10.0</far>
+          </clip>
+          <depth_camera>
+            <clip>
+              <near>0.1</near>
+              <far>10.0</far>
+            </clip>
+          </depth_camera>
+        </camera>
+        <topic>${prefix}camera</topic>
+        <gz_frame_id>${prefix}camera_optical_frame</gz_frame_id>
+      </sensor>
+    </gazebo>
+
+  </xacro:macro>
+</robot>

@@ -1,0 +1,135 @@
+<?xml version="1.0"?>
+<!-- 
+  2-Finger Parallel Gripper
+  Prismatic joints for open/close
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="humanoid_gripper" params="prefix parent_link *origin">
+
+    <!-- ==================== PROPERTIES ==================== -->
+    <xacro:property name="palm_width" value="0.06"/>
+    <xacro:property name="palm_depth" value="0.04"/>
+    <xacro:property name="palm_height" value="0.025"/>
+    <xacro:property name="finger_length" value="0.07"/>
+    <xacro:property name="finger_width" value="0.015"/>
+    <xacro:property name="finger_depth" value="0.02"/>
+    <xacro:property name="finger_max_open" value="0.04"/>
+
+    <!-- ==================== MATERIALS ==================== -->
+    <material name="${prefix}gripper_dark">
+      <color rgba="0.2 0.2 0.2 1.0"/>
+    </material>
+    <material name="${prefix}gripper_rubber">
+      <color rgba="0.1 0.1 0.1 1.0"/>
+    </material>
+
+    <!-- ==================== PALM ==================== -->
+    <joint name="${prefix}gripper_base_joint" type="fixed">
+      <xacro:insert_block name="origin"/>
+      <parent link="${parent_link}"/>
+      <child link="${prefix}gripper_base_link"/>
+    </joint>
+
+    <link name="${prefix}gripper_base_link">
+      <visual>
+        <origin xyz="0 0 ${-palm_height/2}" rpy="0 0 0"/>
+        <geometry>
+          <box size="${palm_depth} ${palm_width} ${palm_height}"/>
+        </geometry>
+        <material name="${prefix}gripper_dark"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${-palm_height/2}" rpy="0 0 0"/>
+        <geometry>
+          <box size="${palm_depth} ${palm_width} ${palm_height}"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <origin xyz="0 0 ${-palm_height/2}" rpy="0 0 0"/>
+        <mass value="0.3"/>
+        <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+      </inertial>
+    </link>
+
+    <!-- ==================== LEFT FINGER ==================== -->
+    <joint name="${prefix}left_finger_joint" type="prismatic">
+      <origin xyz="0 ${palm_width/2} ${-palm_height}" rpy="0 0 0"/>
+      <parent link="${prefix}gripper_base_link"/>
+      <child link="${prefix}left_finger_link"/>
+      <axis xyz="0 1 0"/>
+      <limit lower="0" upper="${finger_max_open}" effort="20.0" velocity="0.5"/>
+      <dynamics damping="0.1" friction="0.05"/>
+    </joint>
+
+    <link name="${prefix}left_finger_link">
+      <visual>
+        <origin xyz="0 ${finger_width/2} ${-finger_length/2}" rpy="0 0 0"/>
+        <geometry>
+          <box size="${finger_depth} ${finger_width} ${finger_length}"/>
+        </geometry>
+        <material name="${prefix}gripper_rubber"/>
+      </visual>
+      <collision>
+        <origin xyz="0 ${finger_width/2} ${-finger_length/2}" rpy="0 0 0"/>
+        <geometry>
+          <box size="${finger_depth} ${finger_width} ${finger_length}"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <origin xyz="0 ${finger_width/2} ${-finger_length/2}" rpy="0 0 0"/>
+        <mass value="0.05"/>
+        <inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.00001"/>
+      </inertial>
+    </link>
+
+    <!-- Left finger tip (for grasp contact) -->
+    <joint name="${prefix}left_finger_tip_joint" type="fixed">
+      <origin xyz="0 ${finger_width/2} ${-finger_length}" rpy="0 0 0"/>
+      <parent link="${prefix}left_finger_link"/>
+      <child link="${prefix}left_finger_tip"/>
+    </joint>
+    <link name="${prefix}left_finger_tip"/>
+
+    <!-- ==================== RIGHT FINGER ==================== -->
+    <joint name="${prefix}right_finger_joint" type="prismatic">
+      <origin xyz="0 ${-palm_width/2} ${-palm_height}" rpy="0 0 0"/>
+      <parent link="${prefix}gripper_base_link"/>
+      <child link="${prefix}right_finger_link"/>
+      <axis xyz="0 -1 0"/>
+      <limit lower="0" upper="${finger_max_open}" effort="20.0" velocity="0.5"/>
+      <mimic joint="${prefix}left_finger_joint" multiplier="1.0" offset="0.0"/>
+      <dynamics damping="0.1" friction="0.05"/>
+    </joint>
+
+    <link name="${prefix}right_finger_link">
+      <visual>
+        <origin xyz="0 ${-finger_width/2} ${-finger_length/2}" rpy="0 0 0"/>
+        <geometry>
+          <box size="${finger_depth} ${finger_width} ${finger_length}"/>
+        </geometry>
+        <material name="${prefix}gripper_rubber"/>
+      </visual>
+      <collision>
+        <origin xyz="0 ${-finger_width/2} ${-finger_length/2}" rpy="0 0 0"/>
+        <geometry>
+          <box size="${finger_depth} ${finger_width} ${finger_length}"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <origin xyz="0 ${-finger_width/2} ${-finger_length/2}" rpy="0 0 0"/>
+        <mass value="0.05"/>
+        <inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.00001"/>
+      </inertial>
+    </link>
+
+    <!-- Grasp frame (center between finger tips) -->
+    <joint name="${prefix}grasp_frame_joint" type="fixed">
+      <origin xyz="0 0 ${-palm_height - finger_length}" rpy="0 0 0"/>
+      <parent link="${prefix}gripper_base_link"/>
+      <child link="${prefix}grasp_frame"/>
+    </joint>
+    <link name="${prefix}grasp_frame"/>
+
+  </xacro:macro>
+</robot>

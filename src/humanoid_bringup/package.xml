@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>humanoid_bringup</name>
+  <version>0.1.0</version>
+  <description>Top-level launch files and pick-and-place pipeline for the humanoid arm robot</description>
+  <maintainer email="victor@todo.com">victor</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <depend>rclpy</depend>
+  <depend>humanoid_description</depend>
+  <depend>humanoid_gazebo</depend>
+  <depend>humanoid_moveit_config</depend>
+  <depend>humanoid_perception</depend>
+  <depend>moveit_ros_planning_interface</depend>
+  <depend>geometry_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>control_msgs</depend>
+  <depend>action_msgs</depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

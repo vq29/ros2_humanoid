@@ -1,0 +1,20 @@
+# Pick-and-place pipeline parameters
+pick_place_node:
+  ros__parameters:
+    # Approach height above detected object (meters)
+    approach_height: 0.10
+
+    # Height above table surface for grasping (meters)
+    grasp_height: 0.02
+
+    # Lift height after grasping (meters)
+    lift_height: 0.15
+
+    # Target place position (world frame)
+    place_x: 0.45
+    place_y: 0.15
+    place_z: 0.85
+
+    # Gripper positions (meters)
+    gripper_open: 0.04
+    gripper_close: 0.01

@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<!--
+  Semantic Robot Description Format (SRDF)
+  Defines planning groups, named states, and disabled collisions for MoveIt2
+-->
+<robot name="humanoid_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- ==================== PLANNING GROUPS ==================== -->
+
+  <!-- Arm group: 6-DOF serial chain -->
+  <group name="arm">
+    <chain base_link="base_link" tip_link="tool0"/>
+  </group>
+
+  <!-- Gripper group -->
+  <group name="gripper">
+    <joint name="left_finger_joint"/>
+    <joint name="right_finger_joint"/>
+  </group>
+
+  <!-- ==================== GROUP STATES (Named poses) ==================== -->
+
+  <!-- Home position: arm tucked to side -->
+  <group_state name="home" group="arm">
+    <joint name="shoulder_pitch_joint" value="0.0"/>
+    <joint name="shoulder_roll_joint" value="0.0"/>
+    <joint name="shoulder_yaw_joint" value="0.0"/>
+    <joint name="elbow_pitch_joint" value="0.0"/>
+    <joint name="wrist_pitch_joint" value="0.0"/>
+    <joint name="wrist_roll_joint" value="0.0"/>
+  </group_state>
+
+  <!-- Ready position: arm extended slightly forward -->
+  <group_state name="ready" group="arm">
+    <joint name="shoulder_pitch_joint" value="-0.5"/>
+    <joint name="shoulder_roll_joint" value="0.0"/>
+    <joint name="shoulder_yaw_joint" value="0.0"/>
+    <joint name="elbow_pitch_joint" value="1.0"/>
+    <joint name="wrist_pitch_joint" value="-0.5"/>
+    <joint name="wrist_roll_joint" value="0.0"/>
+  </group_state>
+
+  <!-- Gripper open -->
+  <group_state name="open" group="gripper">
+    <joint name="left_finger_joint" value="0.04"/>
+    <joint name="right_finger_joint" value="0.04"/>
+  </group_state>
+
+  <!-- Gripper closed -->
+  <group_state name="closed" group="gripper">
+    <joint name="left_finger_joint" value="0.0"/>
+    <joint name="right_finger_joint" value="0.0"/>
+  </group_state>
+
+  <!-- ==================== END EFFECTOR ==================== -->
+  <end_effector name="gripper" parent_link="tool0" group="gripper"/>
+
+  <!-- ==================== VIRTUAL JOINTS ==================== -->
+  <virtual_joint name="world_joint" type="fixed" parent_frame="world" child_link="base_link"/>
+
+  <!-- ==================== DISABLE COLLISIONS ==================== -->
+  <!-- Self-collision pairs that are always/never in collision -->
+  <disable_collisions link1="base_link" link2="head_link" reason="Adjacent"/>
+  <disable_collisions link1="base_link" link2="shoulder_pitch_link" reason="Adjacent"/>
+  <disable_collisions link1="shoulder_pitch_link" link2="shoulder_roll_link" reason="Adjacent"/>
+  <disable_collisions link1="shoulder_roll_link" link2="upper_arm_link" reason="Adjacent"/>
+  <disable_collisions link1="upper_arm_link" link2="forearm_link" reason="Adjacent"/>
+  <disable_collisions link1="forearm_link" link2="wrist_pitch_link" reason="Adjacent"/>
+  <disable_collisions link1="wrist_pitch_link" link2="wrist_roll_link" reason="Adjacent"/>
+  <disable_collisions link1="wrist_roll_link" link2="gripper_base_link" reason="Adjacent"/>
+  <disable_collisions link1="gripper_base_link" link2="left_finger_link" reason="Adjacent"/>
+  <disable_collisions link1="gripper_base_link" link2="right_finger_link" reason="Adjacent"/>
+  <disable_collisions link1="left_finger_link" link2="right_finger_link" reason="Adjacent"/>
+  <disable_collisions link1="head_link" link2="camera_link" reason="Adjacent"/>
+  <disable_collisions link1="head_link" link2="camera_lens_link" reason="Adjacent"/>
+  <disable_collisions link1="camera_link" link2="camera_lens_link" reason="Adjacent"/>
+  <disable_collisions link1="base_link" link2="camera_link" reason="Never"/>
+  <disable_collisions link1="base_link" link2="camera_lens_link" reason="Never"/>
+  <disable_collisions link1="head_link" link2="shoulder_pitch_link" reason="Never"/>
+  <disable_collisions link1="shoulder_pitch_link" link2="forearm_link" reason="Never"/>
+
+</robot>

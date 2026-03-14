@@ -1,0 +1,77 @@
+# System Architecture
+
+## Node Graph
+
+```
+┌─────────────────────────┐
+│    Gazebo Harmonic       │
+│  ┌───────────────────┐  │
+│  │  pick_place.world  │  │
+│  │  - table           │  │
+│  │  - red_cube        │  │
+│  │  - target_zone     │  │
+│  │  - humanoid_robot  │  │
+│  └───────────────────┘  │
+│           │              │
+│    gz_ros2_control       │
+│    rgbd_camera sensor    │
+└─────────┬───────────────┘
+          │ ros_gz_bridge
+          ▼
+┌─────────────────────────────────────────────────────────┐
+│                      ROS2 Jazzy                          │
+│                                                          │
+│  ┌──────────────┐    ┌──────────────┐   ┌────────────┐  │
+│  │ robot_state_ │    │  controller  │   │ ros_gz_    │  │
+│  │ publisher    │    │  _manager    │   │ bridge     │  │
+│  └──────────────┘    └──────┬───────┘   └─────┬──────┘  │
+│                             │                  │         │
+│                    ┌────────┴────────┐         │         │
+│                    │                 │         │         │
+│              ┌─────┴──────┐  ┌──────┴─────┐   │         │
+│              │arm_         │  │gripper_    │   │         │
+│              │controller   │  │controller  │   │         │
+│              └─────────────┘  └────────────┘   │         │
+│                    ▲                           │         │
+│                    │                           │         │
+│              ┌─────┴──────────────┐      ┌────┴─────┐   │
+│              │    move_group      │      │ /camera/* │   │
+│              │    (MoveIt2)       │      │  topics   │   │
+│              └─────┬──────────────┘      └────┬──────┘   │
+│                    ▲                          │          │
+│                    │                          ▼          │
+│   ┌────────────────┴──────┐    ┌──────────────────────┐ │
+│   │   pick_place_node     │◄───│   object_detector    │ │
+│   │   (state machine)     │    │   (OpenCV)           │ │
+│   └───────────────────────┘    └──────────────────────┘ │
+│                                                          │
+│                    ┌──────────┐                          │
+│                    │  RViz2   │                          │
+│                    └──────────┘                          │
+└──────────────────────────────────────────────────────────┘
+```
+
+## State Machine Flow
+
+```
+IDLE → DETECT → APPROACH → GRASP → LIFT → MOVE → PLACE → OPEN_GRIPPER → HOME → IDLE
+  │       │         │         │       │       │       │         │           │
+  │   Wait for   Move arm   Lower   Close  Move to  Lower   Open        Return
+  │   object     above      arm to  grip   place    arm     grip        to home
+  │   pose       object     grasp          zone                         position
+  │                          height
+  └─────────────── (cycle repeats) ──────────────────────────────────────┘
+```
+
+## Topics
+
+| Topic | Type | Direction |
+|---|---|---|
+| `/robot_description` | `std_msgs/String` | RSP → all |
+| `/joint_states` | `sensor_msgs/JointState` | JSB → MoveIt/RViz |
+| `/camera/image` | `sensor_msgs/Image` | Bridge → Perception |
+| `/camera/depth_image` | `sensor_msgs/Image` | Bridge → Perception |
+| `/camera/camera_info` | `sensor_msgs/CameraInfo` | Bridge → Perception |
+| `/detected_object_pose` | `geometry_msgs/PoseStamped` | Perception → Bringup |
+| `/arm_controller/follow_joint_trajectory` | `control_msgs/FollowJointTrajectory` | MoveIt → Controller |
+| `/gripper_controller/gripper_cmd` | `control_msgs/GripperCommand` | Bringup → Controller |

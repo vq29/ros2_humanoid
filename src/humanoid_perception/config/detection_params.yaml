@@ -1,0 +1,14 @@
+# Object detection parameters
+object_detector:
+  ros__parameters:
+    # HSV color range for red object detection
+    # Red in HSV wraps around, so we use lower red range here
+    # Upper red range (170-180) is handled internally
+    target_color_lower: [0, 120, 70]
+    target_color_upper: [10, 255, 255]
+
+    # Minimum contour area to consider as a valid detection (pixels)
+    min_contour_area: 200
+
+    # Camera frame for published poses
+    camera_frame: "camera_optical_frame"

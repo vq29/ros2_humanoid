@@ -1,0 +1,34 @@
+# ROS2 build artifacts
+build/
+install/
+log/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+.eggs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Colcon
+.colcon/
+
+# RViz config backups
+*.rviz~
+
+# Generated URDF
+*.urdf
+!src/humanoid_description/urdf/*.urdf

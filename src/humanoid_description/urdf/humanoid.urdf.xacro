@@ -1,0 +1,218 @@
+<?xml version="1.0"?>
+<!--
+  Main Humanoid Robot Description
+  Assembles: torso + head + arm + gripper + camera + ros2_control
+-->
+<robot name="humanoid_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- ==================== INCLUDES ==================== -->
+  <xacro:include filename="$(find humanoid_description)/urdf/arm.xacro"/>
+  <xacro:include filename="$(find humanoid_description)/urdf/gripper.xacro"/>
+  <xacro:include filename="$(find humanoid_description)/urdf/camera.xacro"/>
+  <xacro:include filename="$(find humanoid_description)/urdf/ros2_control.xacro"/>
+
+  <!-- ==================== PARAMETERS ==================== -->
+  <xacro:arg name="prefix" default=""/>
+  <xacro:property name="prefix" value="$(arg prefix)"/>
+
+  <!-- Torso dimensions -->
+  <xacro:property name="torso_width" value="0.35"/>
+  <xacro:property name="torso_depth" value="0.25"/>
+  <xacro:property name="torso_height" value="0.50"/>
+
+  <!-- Head dimensions -->
+  <xacro:property name="head_radius" value="0.10"/>
+  <xacro:property name="neck_height" value="0.06"/>
+
+  <!-- ==================== MATERIALS ==================== -->
+  <material name="torso_white">
+    <color rgba="0.9 0.9 0.95 1.0"/>
+  </material>
+  <material name="torso_accent">
+    <color rgba="0.2 0.5 0.9 1.0"/>
+  </material>
+  <material name="head_color">
+    <color rgba="0.85 0.85 0.9 1.0"/>
+  </material>
+  <material name="eye_color">
+    <color rgba="0.0 0.6 1.0 1.0"/>
+  </material>
+
+  <!-- ==================== WORLD LINK (for Gazebo) ==================== -->
+  <link name="world"/>
+
+  <joint name="world_to_base" type="fixed">
+    <origin xyz="0 0 0.75" rpy="0 0 0"/>
+    <parent link="world"/>
+    <child link="${prefix}base_link"/>
+  </joint>
+
+  <!-- ==================== BASE LINK / TORSO ==================== -->
+  <link name="${prefix}base_link">
+    <!-- Main torso body -->
+    <visual>
+      <origin xyz="0 0 ${torso_height/2}" rpy="0 0 0"/>
+      <geometry>
+        <box size="${torso_depth} ${torso_width} ${torso_height}"/>
+      </geometry>
+      <material name="torso_white"/>
+    </visual>
+    <!-- Chest accent panel -->
+    <visual>
+      <origin xyz="${torso_depth/2 + 0.001} 0 ${torso_height * 0.65}" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.002 ${torso_width * 0.6} ${torso_height * 0.3}"/>
+      </geometry>
+      <material name="torso_accent"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${torso_height/2}" rpy="0 0 0"/>
+      <geometry>
+        <box size="${torso_depth} ${torso_width} ${torso_height}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 ${torso_height/2}" rpy="0 0 0"/>
+      <mass value="15.0"/>
+      <inertia ixx="0.5" ixy="0" ixz="0" iyy="0.4" iyz="0" izz="0.3"/>
+    </inertial>
+  </link>
+
+  <!-- ==================== NECK + HEAD ==================== -->
+  <joint name="${prefix}neck_joint" type="fixed">
+    <origin xyz="0 0 ${torso_height + neck_height}" rpy="0 0 0"/>
+    <parent link="${prefix}base_link"/>
+    <child link="${prefix}head_link"/>
+  </joint>
+
+  <link name="${prefix}head_link">
+    <!-- Head sphere -->
+    <visual>
+      <origin xyz="0 0 ${head_radius}" rpy="0 0 0"/>
+      <geometry>
+        <sphere radius="${head_radius}"/>
+      </geometry>
+      <material name="head_color"/>
+    </visual>
+    <!-- Left eye -->
+    <visual>
+      <origin xyz="${head_radius * 0.85} ${head_radius * 0.3} ${head_radius * 1.1}" rpy="0 ${pi/2} 0"/>
+      <geometry>
+        <cylinder radius="0.015" length="0.01"/>
+      </geometry>
+      <material name="eye_color"/>
+    </visual>
+    <!-- Right eye -->
+    <visual>
+      <origin xyz="${head_radius * 0.85} ${-head_radius * 0.3} ${head_radius * 1.1}" rpy="0 ${pi/2} 0"/>
+      <geometry>
+        <cylinder radius="0.015" length="0.01"/>
+      </geometry>
+      <material name="eye_color"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${head_radius}" rpy="0 0 0"/>
+      <geometry>
+        <sphere radius="${head_radius}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 ${head_radius}" rpy="0 0 0"/>
+      <mass value="2.0"/>
+      <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.01" iyz="0" izz="0.01"/>
+    </inertial>
+  </link>
+
+  <!-- ==================== RIGHT ARM (attached to right shoulder) ==================== -->
+  <xacro:humanoid_arm prefix="${prefix}" parent_link="${prefix}base_link">
+    <origin xyz="0 ${-(torso_width/2 + 0.02)} ${torso_height - 0.05}" rpy="0 0 0"/>
+  </xacro:humanoid_arm>
+
+  <!-- ==================== GRIPPER (attached to arm tool0) ==================== -->
+  <xacro:humanoid_gripper prefix="${prefix}" parent_link="${prefix}tool0">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:humanoid_gripper>
+
+  <!-- ==================== CAMERA (on head, looking forward-down) ==================== -->
+  <xacro:humanoid_camera prefix="${prefix}" parent_link="${prefix}head_link">
+    <origin xyz="${head_radius * 0.9} 0 ${head_radius * 0.6}" rpy="0 ${pi/6} 0"/>
+  </xacro:humanoid_camera>
+
+  <!-- ==================== ROS2 CONTROL ==================== -->
+  <xacro:humanoid_ros2_control prefix="${prefix}"/>
+
+  <!-- ==================== GAZEBO PLUGIN ==================== -->
+  <gazebo>
+    <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+      <parameters>$(find humanoid_gazebo)/config/controllers.yaml</parameters>
+    </plugin>
+  </gazebo>
+
+  <!-- ==================== GAZEBO MATERIALS ==================== -->
+  <gazebo reference="${prefix}base_link">
+    <visual>
+      <material>
+        <ambient>0.9 0.9 0.95 1.0</ambient>
+        <diffuse>0.9 0.9 0.95 1.0</diffuse>
+        <specular>0.5 0.5 0.5 1.0</specular>
+      </material>
+    </visual>
+  </gazebo>
+
+  <gazebo reference="${prefix}head_link">
+    <visual>
+      <material>
+        <ambient>0.85 0.85 0.9 1.0</ambient>
+        <diffuse>0.85 0.85 0.9 1.0</diffuse>
+      </material>
+    </visual>
+  </gazebo>
+
+  <gazebo reference="${prefix}upper_arm_link">
+    <visual>
+      <material>
+        <ambient>0.75 0.75 0.75 1.0</ambient>
+        <diffuse>0.75 0.75 0.75 1.0</diffuse>
+        <specular>0.6 0.6 0.6 1.0</specular>
+      </material>
+    </visual>
+  </gazebo>
+
+  <gazebo reference="${prefix}forearm_link">
+    <visual>
+      <material>
+        <ambient>0.75 0.75 0.75 1.0</ambient>
+        <diffuse>0.75 0.75 0.75 1.0</diffuse>
+        <specular>0.6 0.6 0.6 1.0</specular>
+      </material>
+    </visual>
+  </gazebo>
+
+  <!-- Gripper finger friction for grasping -->
+  <gazebo reference="${prefix}left_finger_link">
+    <collision>
+      <surface>
+        <friction>
+          <ode>
+            <mu>1.0</mu>
+            <mu2>1.0</mu2>
+          </ode>
+        </friction>
+      </surface>
+    </collision>
+  </gazebo>
+
+  <gazebo reference="${prefix}right_finger_link">
+    <collision>
+      <surface>
+        <friction>
+          <ode>
+            <mu>1.0</mu>
+            <mu2>1.0</mu2>
+          </ode>
+        </friction>
+      </surface>
+    </collision>
+  </gazebo>
+
+</robot>
